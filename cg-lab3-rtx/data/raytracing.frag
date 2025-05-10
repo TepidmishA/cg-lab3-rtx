@@ -1,6 +1,6 @@
 #version 430
-#define EPSILON = 0.001
-#define BIG = 1000000.0
+#define EPSILON 0.001
+#define BIG 1000000.0
 const int DIFFUSE = 1;
 const int REFLECTION = 2;
 const int REFRACTION = 3;
@@ -36,6 +36,21 @@ struct STriangle
     vec3 v3;
     int MaterialIdx;
 };
+struct SIntersection
+{
+    float Time;
+    vec3 Point;
+    vec3 Normal;
+    vec3 Color;
+    // ambient, diffuse and specular coeffs
+
+    vec4 LightCoeffs;
+    // 0 - non-reflection, 1 - mirror
+    float ReflectionCoef;
+    float RefractionCoef;
+    int MaterialType;
+};
+
 
 SRay GenerateRay(SCamera uCamera) {
     vec2 coords = glPosition.xy * uCamera.Scale;
@@ -134,7 +149,7 @@ bool IntersectTriangle(SRay ray, vec3 v1, vec3 v2, vec3 v3, out float time)
     // Input: // points v0, v1, v2 are the triangle's vertices
     // rayOrig and rayDir are the ray's origin (point) and the ray's direction
     // Return: // return true is the ray intersects the triangle, false otherwise
-    // bool intersectTriangle(point v0, point v1, point v2, point rayOrig, vector rayDir) {
+    // bool intersectTriangle(point v0, point v1, point v2, point rayOrig, vector rayDir) 
     // compute plane's normal vector
     time = -1;
     vec3 A = v2 - v1;
