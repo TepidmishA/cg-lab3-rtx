@@ -49,8 +49,23 @@ struct SIntersection
     float RefractionCoef;
     int MaterialType;
 };
+struct SLight
+{
+    vec3 Position;
+};
+struct SMaterial
+{
+    //diffuse color
+    vec3 Color;
+    // ambient, diffuse and specular coeffs
+    vec4 LightCoeffs;
+    // 0 - non-reflection, 1 - mirror
+    float ReflectionCoef;
+    float RefractionCoef;
+    int MaterialType;
+};
 
-
+/*** INITIALIZATION ***/
 SCamera initializeDefaultCamera() {
     //** CAMERA **//
     SCamera camera;
@@ -109,8 +124,29 @@ void initializeDefaultScene()
     spheres[1].MaterialIdx = 0;
 }
 
+SLight light;
+SMaterial materials[6];
+
+void initializeDefaultLightMaterials()
+{
+    //** LIGHT **//
+    light.Position = vec3(0.0, 2.0, -4.0f);
+    /** MATERIALS **/
+    vec4 lightCoefs = vec4(0.4,0.9,0.0,512.0);
+    materials[0].Color = vec3(0.0, 1.0, 0.0);
+    materials[0].LightCoeffs = vec4(lightCoefs);
+    materials[0].ReflectionCoef = 0.5;
+    materials[0].RefractionCoef = 1.0;
+    materials[0].MaterialType = DIFFUSE;
+    materials[1].Color = vec3(0.0, 0.0, 1.0);
+    materials[1].LightCoeffs = vec4(lightCoefs);
+    materials[1].ReflectionCoef = 0.5;
+    materials[1].RefractionCoef = 1.0;
+    materials[1].MaterialType = DIFFUSE;
+}
 
 
+/*** RTX FUNCTIONS ***/
 SRay GenerateRay(SCamera uCamera) {
     vec2 coords = glPosition.xy * uCamera.Scale;
     vec3 direction = uCamera.View + uCamera.Side * coords.x + uCamera.Up * coords.y;
@@ -207,6 +243,7 @@ bool IntersectTriangle(SRay ray, vec3 v1, vec3 v2, vec3 v3, out float time)
 
 void main() {
     initializeDefaultScene();
+    initializeDefaultLightMaterials();
 
     SCamera uCamera = initializeDefaultCamera();
     SRay ray = GenerateRay(uCamera);
