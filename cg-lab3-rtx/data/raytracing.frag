@@ -1,8 +1,8 @@
 #version 430
 
 out vec4 FragColor;
-in vec3 gPosition;
+in vec3 glPosition;
 
 void main() {
-    FragColor = vec4(abs(gPosition.xy), 0, 1.0);
+    FragColor = vec4(abs(glPosition.xy), 0, 1.0);
 }

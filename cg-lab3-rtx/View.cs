@@ -10,11 +10,13 @@ public class View
     private int BasicProgramID;
     private int BasicVertexShader;
     private int BasicFragmentShader;
+
     private int attribute_vpos;
-    private int uniform_pos;
     private Vector3 campos;
-    private int uniform_aspect;
     private double aspect;
+
+    private int uniform_pos;
+    private int uniform_aspect;
 
     public void setAspect(double aspect)
     {
