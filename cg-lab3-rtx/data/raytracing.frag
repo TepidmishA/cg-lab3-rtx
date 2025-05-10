@@ -5,7 +5,6 @@ const int DIFFUSE = 1;
 const int REFLECTION = 2;
 const int REFRACTION = 3;
 
-
 out vec4 FragColor;
 in vec3 glPosition;
 
@@ -52,12 +51,6 @@ struct SIntersection
 };
 
 
-SRay GenerateRay(SCamera uCamera) {
-    vec2 coords = glPosition.xy * uCamera.Scale;
-    vec3 direction = uCamera.View + uCamera.Side * coords.x + uCamera.Up * coords.y;
-    return SRay(uCamera.Position, normalize(direction));
-}
-
 SCamera initializeDefaultCamera() {
     //** CAMERA **//
     SCamera camera;
@@ -68,7 +61,6 @@ SCamera initializeDefaultCamera() {
     camera.Scale = vec2(1.0);
     return camera;
 }
-
 
 STriangle triangles[10];
 SSphere spheres[2];
@@ -115,6 +107,14 @@ void initializeDefaultScene()
     spheres[1].Center = vec3(2.0, 1.0, 2.0);
     spheres[1].Radius = 1.0;
     spheres[1].MaterialIdx = 0;
+}
+
+
+
+SRay GenerateRay(SCamera uCamera) {
+    vec2 coords = glPosition.xy * uCamera.Scale;
+    vec3 direction = uCamera.View + uCamera.Side * coords.x + uCamera.Up * coords.y;
+    return SRay(uCamera.Position, normalize(direction));
 }
 
 bool IntersectSphere(SSphere sphere, SRay ray, float start, float final, out float time)
@@ -201,6 +201,9 @@ bool IntersectTriangle(SRay ray, vec3 v1, vec3 v2, vec3 v3, out float time)
     return true;
     // this ray hits the triangle
 }
+
+
+
 
 void main() {
     initializeDefaultScene();
