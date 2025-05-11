@@ -14,7 +14,7 @@ namespace cg_lab3_rtx
     public partial class MaterialEditorForm : Form
     {
         private View view;
-        private Button btnUpdate;
+        public Button btnUpdate;
 
         public MaterialEditorForm(View view)
         {
@@ -32,13 +32,26 @@ namespace cg_lab3_rtx
             this.Controls.Add(btnUpdate);
         }
 
-        // TODO: переделать 
         private void InitializeMaterials()
         {
-            // Пример заполнения начальными значениями (должно быть заменено реальными данными из шейдера)
-            for (int i = 0; i < 7; i++)
+            for (int i = 0; i < view.getTotalMaterials(); i++)
             {
                 dataGridView_materials.Rows.Add(i, "1.0", "0.0", "0.0", "0.0", "0.5", "DIFFUSE_REFLECTION");
+                Vector3 color = view.GetMaterialColor(i);
+                float reflection = view.GetMaterialReflection(i);
+                float refraction = view.GetMaterialRefraction(i);
+                int type = view.GetMaterialType(i);
+                string materialType = type == 1 ? "DIFFUSE_REFLECTION" :
+                                       type == 2 ? "MIRROR_REFLECTION" : 
+                                       "REFRACTION";
+                dataGridView_materials.Rows[i].Cells["Index"].Value = i;
+                dataGridView_materials.Rows[i].Cells["colorRed"].Value = color.X;
+                dataGridView_materials.Rows[i].Cells["colorGreen"].Value = color.Y;
+                dataGridView_materials.Rows[i].Cells["colorBlue"].Value = color.Z;
+                dataGridView_materials.Rows[i].Cells["reflectionCoef"].Value = reflection;
+                dataGridView_materials.Rows[i].Cells["refractionCoef"].Value = refraction;
+                dataGridView_materials.Rows[i].Cells["materialType"].Value = materialType;
+
             }
         }
 
@@ -53,30 +66,19 @@ namespace cg_lab3_rtx
                 int index = (int)row.Cells["Index"].Value;
 
                 // Обновление цвета
-                string[] colorParts = row.Cells["Color"].Value.ToString().Split(',');
                 Vector3 color = new Vector3(
-                    float.Parse(colorParts[0]),
-                    float.Parse(colorParts[1]),
-                    float.Parse(colorParts[2])
+                    float.Parse(row.Cells["colorRed"].Value.ToString()),
+                    float.Parse(row.Cells["colorGreen"].Value.ToString()),
+                    float.Parse(row.Cells["colorBlue"].Value.ToString())
                 );
                 view.UpdateMaterialColor(index, color);
 
-                // Обновление коэффициентов освещения
-                string[] coeffsParts = row.Cells["LightCoeffs"].Value.ToString().Split(',');
-                Vector4 lightCoeffs = new Vector4(
-                    float.Parse(coeffsParts[0]),
-                    float.Parse(coeffsParts[1]),
-                    float.Parse(coeffsParts[2]),
-                    float.Parse(coeffsParts[3])
-                );
-                view.UpdateMaterialLightCoeffs(index, lightCoeffs);
-
                 // Обновление отражения
-                float reflection = float.Parse(row.Cells["Reflection"].Value.ToString());
+                float reflection = float.Parse(row.Cells["reflectionCoef"].Value.ToString());
                 view.UpdateMaterialReflection(index, reflection);
 
                 // Обновление преломления
-                float refraction = float.Parse(row.Cells["Refraction"].Value.ToString());
+                float refraction = float.Parse(row.Cells["refractionCoef"].Value.ToString());
                 view.UpdateMaterialRefraction(index, refraction);
 
                 // Обновление типа материала
@@ -85,9 +87,6 @@ namespace cg_lab3_rtx
                            materialType == "MIRROR_REFLECTION" ? 2 : 3;
                 view.UpdateMaterialType(index, type);
             }
-
-            // Перерисовка сцены (предполагается, что метод Render доступен)
-            //view.Render();
         }
     }
 }

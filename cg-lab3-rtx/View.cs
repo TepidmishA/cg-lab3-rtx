@@ -17,11 +17,18 @@ public class View
 
     private int uniform_pos;
     private int uniform_aspect;
+
     private int[] uniform_materialColors;
     private int[] uniform_materialLightCoeffs;
     private int[] uniform_materialReflection;
     private int[] uniform_materialRefraction;
     private int[] uniform_materialType;
+
+    private Vector3[] materialColors;
+    private Vector4[] materialLightCoeffs;
+    private float[] materialReflections;
+    private float[] materialRefractions;
+    private int[] materialTypes;
 
     private const int TOTAL_MATERIALS = 7;
 
@@ -93,6 +100,12 @@ public class View
         uniform_materialRefraction = new int[TOTAL_MATERIALS];
         uniform_materialType = new int[TOTAL_MATERIALS];
 
+        materialColors = new Vector3[TOTAL_MATERIALS];
+        materialLightCoeffs = new Vector4[TOTAL_MATERIALS];
+        materialReflections = new float[TOTAL_MATERIALS];
+        materialRefractions = new float[TOTAL_MATERIALS];
+        materialTypes = new int[TOTAL_MATERIALS];
+
         for (int i = 0; i < TOTAL_MATERIALS; i++)
         {
             uniform_materialColors[i] = GL.GetUniformLocation(BasicProgramID, $"uMaterialColor[{i}]");
@@ -110,7 +123,6 @@ public class View
     {
         GL.UseProgram(BasicProgramID);
 
-        // Начальные значения материалов на основе initializeDefaultLightMaterials
         Vector3[] colors = new Vector3[]
         {
             new Vector3(0.0f, 1.0f, 0.0f), // Green
@@ -150,6 +162,12 @@ public class View
 
         for (int i = 0; i < TOTAL_MATERIALS; i++)
         {
+            materialColors[i] = colors[i];
+            materialLightCoeffs[i] = lightCoeffs[i];
+            materialReflections[i] = reflections[i];
+            materialRefractions[i] = refractions[i];
+            materialTypes[i] = types[i];
+
             GL.Uniform3(uniform_materialColors[i], colors[i]);
             GL.Uniform4(uniform_materialLightCoeffs[i], lightCoeffs[i]);
             GL.Uniform1(uniform_materialReflection[i], reflections[i]);
@@ -157,7 +175,6 @@ public class View
             GL.Uniform1(uniform_materialType[i], types[i]);
         }
     }
-
 
     public void Render(GLControl glControl)
     {
@@ -182,30 +199,81 @@ public class View
     {
         GL.UseProgram(BasicProgramID);
         GL.Uniform3(uniform_materialColors[index], color);
+        if (index >= 0 && index < TOTAL_MATERIALS)
+            materialColors[index] = color;
     }
 
     public void UpdateMaterialLightCoeffs(int index, Vector4 lightCoeffs)
     {
         GL.UseProgram(BasicProgramID);
         GL.Uniform4(uniform_materialLightCoeffs[index], lightCoeffs);
+        if (index >= 0 && index < TOTAL_MATERIALS)
+            materialLightCoeffs[index] = lightCoeffs;
     }
 
     public void UpdateMaterialReflection(int index, float reflection)
     {
         GL.UseProgram(BasicProgramID);
         GL.Uniform1(uniform_materialReflection[index], reflection);
+        if (index >= 0 && index < TOTAL_MATERIALS)
+            materialReflections[index] = reflection;
     }
 
     public void UpdateMaterialRefraction(int index, float refraction)
     {
         GL.UseProgram(BasicProgramID);
         GL.Uniform1(uniform_materialRefraction[index], refraction);
+        if (index >= 0 && index < TOTAL_MATERIALS)
+            materialRefractions[index] = refraction;
     }
 
     public void UpdateMaterialType(int index, int type)
     {
         GL.UseProgram(BasicProgramID);
         GL.Uniform1(uniform_materialType[index], type);
+        if (index >= 0 && index < TOTAL_MATERIALS)
+            materialTypes[index] = type;
+    }
+
+    public int getTotalMaterials()
+    {
+        return TOTAL_MATERIALS;
+    }
+
+    // Геттеры для получения значений материалов по индексу
+    public Vector3 GetMaterialColor(int index)
+    {
+        if (index >= 0 && index < TOTAL_MATERIALS)
+            return materialColors[index];
+        throw new IndexOutOfRangeException("Index out of range for materialColors");
+    }
+
+    public Vector4 GetMaterialLightCoeffs(int index)
+    {
+        if (index >= 0 && index < TOTAL_MATERIALS)
+            return materialLightCoeffs[index];
+        throw new IndexOutOfRangeException("Index out of range for materialLightCoeffs");
+    }
+
+    public float GetMaterialReflection(int index)
+    {
+        if (index >= 0 && index < TOTAL_MATERIALS)
+            return materialReflections[index];
+        throw new IndexOutOfRangeException("Index out of range for materialReflections");
+    }
+
+    public float GetMaterialRefraction(int index)
+    {
+        if (index >= 0 && index < TOTAL_MATERIALS)
+            return materialRefractions[index];
+        throw new IndexOutOfRangeException("Index out of range for materialRefractions");
+    }
+
+    public int GetMaterialType(int index)
+    {
+        if (index >= 0 && index < TOTAL_MATERIALS)
+            return materialTypes[index];
+        throw new IndexOutOfRangeException("Index out of range for materialTypes");
     }
 }
 

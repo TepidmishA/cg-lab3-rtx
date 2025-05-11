@@ -33,8 +33,8 @@
             this.colorRed = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colorGreen = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colorBlue = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.transparency = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.specular = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.reflectionCoef = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.refractionCoef = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.materialType = new System.Windows.Forms.DataGridViewComboBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView_materials)).BeginInit();
             this.SuspendLayout();
@@ -47,8 +47,8 @@
             this.colorRed,
             this.colorGreen,
             this.colorBlue,
-            this.transparency,
-            this.specular,
+            this.reflectionCoef,
+            this.refractionCoef,
             this.materialType});
             this.dataGridView_materials.Location = new System.Drawing.Point(12, 12);
             this.dataGridView_materials.Name = "dataGridView_materials";
@@ -83,19 +83,19 @@
             this.colorBlue.Name = "colorBlue";
             this.colorBlue.Width = 88;
             // 
-            // transparency
+            // reflectionCoef
             // 
-            this.transparency.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
-            this.transparency.HeaderText = "Transparency";
-            this.transparency.Name = "transparency";
-            this.transparency.Width = 97;
+            this.reflectionCoef.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
+            this.reflectionCoef.HeaderText = "Reflection";
+            this.reflectionCoef.Name = "reflectionCoef";
+            this.reflectionCoef.Width = 80;
             // 
-            // specular
+            // refractionCoef
             // 
-            this.specular.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
-            this.specular.HeaderText = "Specular";
-            this.specular.Name = "specular";
-            this.specular.Width = 74;
+            this.refractionCoef.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
+            this.refractionCoef.HeaderText = "Refraction";
+            this.refractionCoef.Name = "refractionCoef";
+            this.refractionCoef.Width = 81;
             // 
             // materialType
             // 
@@ -127,8 +127,8 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn colorRed;
         private System.Windows.Forms.DataGridViewTextBoxColumn colorGreen;
         private System.Windows.Forms.DataGridViewTextBoxColumn colorBlue;
-        private System.Windows.Forms.DataGridViewTextBoxColumn transparency;
-        private System.Windows.Forms.DataGridViewTextBoxColumn specular;
+        private System.Windows.Forms.DataGridViewTextBoxColumn reflectionCoef;
+        private System.Windows.Forms.DataGridViewTextBoxColumn refractionCoef;
         private System.Windows.Forms.DataGridViewComboBoxColumn materialType;
     }
 }

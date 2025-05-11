@@ -68,14 +68,13 @@ namespace cg_lab3_rtx
             glControl.Invalidate();
         }
 
-        private void ReRender()
-        {
-            view.Render(glControl);
-        }
-
         private void ShowMaterialSettings()
         {
             materialSettingsForm = new MaterialEditorForm(view);
+            materialSettingsForm.btnUpdate.Click += (s, e) =>
+            {
+                view.Render(glControl);
+            };
             materialSettingsForm.Show();
         }
     }
