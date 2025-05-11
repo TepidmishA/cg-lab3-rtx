@@ -18,6 +18,9 @@ public class View
     private int uniform_pos;
     private int uniform_aspect;
 
+    private int uniform_maxRayDepth;
+    private int maxRayDepth;
+
     private int[] uniform_materialColors;
     private int[] uniform_materialLightCoeffs;
     private int[] uniform_materialReflection;
@@ -93,6 +96,7 @@ public class View
         attribute_vpos = GL.GetAttribLocation(BasicProgramID, "vPosition");
         uniform_pos = GL.GetUniformLocation(BasicProgramID, "campos");
         uniform_aspect = GL.GetUniformLocation(BasicProgramID, "aspect");
+        uniform_maxRayDepth = GL.GetUniformLocation(BasicProgramID, "maxRayDepth");
 
         uniform_materialColors = new int[TOTAL_MATERIALS];
         uniform_materialLightCoeffs = new int[TOTAL_MATERIALS];
@@ -117,6 +121,9 @@ public class View
 
         SetupMaterials();
         SetupBuffers();
+
+        GL.Uniform1(uniform_maxRayDepth, 16);
+        maxRayDepth = 16;
     }
 
     private void SetupMaterials()
@@ -235,12 +242,23 @@ public class View
             materialTypes[index] = type;
     }
 
+    public void UpdateMaxRayDepth(int _maxRayDepth)
+    {
+        GL.UseProgram(BasicProgramID);
+        GL.Uniform1(uniform_maxRayDepth, _maxRayDepth);
+        maxRayDepth = _maxRayDepth;
+    }
+
+    public int getMaxRayDepth()
+    {
+        return maxRayDepth;
+    }
+
     public int getTotalMaterials()
     {
         return TOTAL_MATERIALS;
     }
 
-    // Геттеры для получения значений материалов по индексу
     public Vector3 GetMaterialColor(int index)
     {
         if (index >= 0 && index < TOTAL_MATERIALS)

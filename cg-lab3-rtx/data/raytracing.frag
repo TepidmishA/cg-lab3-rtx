@@ -2,7 +2,6 @@
 #define EPSILON 0.001
 #define BIG 1000000.0
 #define MAX_STACK_SIZE 32
-#define MAX_RAY_DEPTH 16
 
 const int DIFFUSE_REFLECTION = 1;
 const int MIRROR_REFLECTION = 2;
@@ -216,6 +215,8 @@ void initializeDefaultScene()
     tetrahedrons[0].Size = 1.2;
     tetrahedrons[0].MaterialIdx = 2;
 }
+
+uniform int maxRayDepth;
 
 SLight light;
 const int TOTAL_MATERIALS = 7;
@@ -656,7 +657,7 @@ void main() {
                         resultColor += diffuseContribution * Phong(intersect, light, shadowing, uCamera);
                     }
                     
-                    if(trRay.depth < MAX_RAY_DEPTH) {
+                    if(trRay.depth < maxRayDepth) {
                         vec3 reflectDirection = reflect(ray.Direction, intersect.Normal);
                         float reflectionContribution = trRay.contribution * intersect.ReflectionCoef;
                         
@@ -672,7 +673,7 @@ void main() {
                     break;
                 }
                 case REFRACTION: {
-                    if(trRay.depth < MAX_RAY_DEPTH) {
+                    if(trRay.depth < maxRayDepth) {
                         float n1 = 1.0; // Воздух
                         float n2 = intersect.RefractionCoef;
                         
