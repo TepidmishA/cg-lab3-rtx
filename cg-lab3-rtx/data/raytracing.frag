@@ -4,9 +4,10 @@
 #define MAX_STACK_SIZE 32
 #define MAX_RAY_DEPTH 8
 
-const int DIFFUSE = 1;
-const int REFLECTION = 2;
+// const int DIFFUSE = 1;
+// const int REFLECTION = 2;
 const int REFRACTION = 3;
+
 const int DIFFUSE_REFLECTION = 1;
 const int MIRROR_REFLECTION = 2;
 
@@ -185,11 +186,11 @@ void initializeDefaultScene()
     /** SPHERES **/
     spheres[0].Center = vec3(-1.0, -1.0, -2.0);
     spheres[0].Radius = 2.0;
-    spheres[0].MaterialIdx = 4; // Поставить стекло
+    spheres[0].MaterialIdx = 5;
 
     spheres[1].Center = vec3(2.0, 1.0, 2.0);
     spheres[1].Radius = 1.0;
-    spheres[1].MaterialIdx = 4; // поставить стекло
+    spheres[1].MaterialIdx = 4;
 }
 
 SLight light;
@@ -198,7 +199,8 @@ SMaterial materials[6];
 // [1] - Blue
 // [2] - Red
 // [3] - White
-// [4] - Glass
+// [4] - Mirror
+// [5] - Glass
 
 void initializeDefaultLightMaterials()
 {
@@ -216,35 +218,42 @@ void initializeDefaultLightMaterials()
     materials[0].LightCoeffs = vec4(lightCoefs);
     materials[0].ReflectionCoef = 0.5;
     materials[0].RefractionCoef = 1.0;
-    materials[0].MaterialType = DIFFUSE;
+    materials[0].MaterialType = DIFFUSE_REFLECTION;
 
     // Blue
     materials[1].Color = vec3(0.0, 0.0, 1.0);
     materials[1].LightCoeffs = vec4(lightCoefs);
     materials[1].ReflectionCoef = 0.5;
     materials[1].RefractionCoef = 1.0;
-    materials[1].MaterialType = DIFFUSE;
+    materials[1].MaterialType = DIFFUSE_REFLECTION;
 
     // Red
     materials[2].Color = vec3(1.0, 0.0, 0.0);
     materials[2].LightCoeffs = vec4(lightCoefs);
     materials[2].ReflectionCoef = 0.5;
     materials[2].RefractionCoef = 1.0;
-    materials[2].MaterialType = DIFFUSE;
+    materials[2].MaterialType = DIFFUSE_REFLECTION;
 
     // White
     materials[3].Color = vec3(1.0, 1.0, 1.0);
     materials[3].LightCoeffs = vec4(0.55f, 0.9, 0.0, 512.0);
     materials[3].ReflectionCoef = 0.5;
     materials[3].RefractionCoef = 1.0;
-    materials[3].MaterialType = DIFFUSE;
+    materials[3].MaterialType = DIFFUSE_REFLECTION;
 
-    // Glass
-    materials[4].Color = vec3(0.9, 0.9, 1.0); // Слегка голубоватый оттенок
+    // Mirror
+    materials[4].Color = vec3(0.9, 0.9, 1.0);
     materials[4].LightCoeffs = vec4(lightCoefs);
     materials[4].ReflectionCoef = 0.5;
     materials[4].RefractionCoef = 1.5;
-    materials[4].MaterialType = REFLECTION;
+    materials[4].MaterialType = MIRROR_REFLECTION;
+
+    // Glass
+    materials[5].Color = vec3(0.9, 0.9, 1.0);
+    materials[5].LightCoeffs = vec4(lightCoefs);
+    materials[5].ReflectionCoef = 0.1;
+    materials[5].RefractionCoef = 2.5;
+    materials[5].MaterialType = REFRACTION;
 }
 
 
@@ -328,7 +337,7 @@ bool Raytrace ( SRay ray, float start, float final, inout SIntersection intersec
     float test = start;
     intersect.Time = final;
 
-    //calculate intersect with spheres
+    // calculate intersect with spheres
     for(int i = 0; i < 2; i++)
     {
         SSphere sphere = spheres[i];
@@ -338,6 +347,9 @@ bool Raytrace ( SRay ray, float start, float final, inout SIntersection intersec
             intersect.Point = ray.Origin + ray.Direction * test;
             intersect.Normal = normalize ( intersect.Point - sphere.Center);
 
+            if (dot(ray.Direction, intersect.Normal) > 0.0) {
+                intersect.Normal = -intersect.Normal;
+            }
             int matIdx = sphere.MaterialIdx;
             intersect.Color = materials[matIdx].Color;
             intersect.LightCoeffs = materials[matIdx].LightCoeffs;
@@ -349,7 +361,7 @@ bool Raytrace ( SRay ray, float start, float final, inout SIntersection intersec
         }
     }
 
-    //calculate intersect with triangles
+    // calculate intersect with triangles
     for(int i = 0; i < TOTAL_TRIANGLES; i++)
     {
         // Пропускаем triangles[10] и triangles[11] для первичных лучей
@@ -361,6 +373,11 @@ bool Raytrace ( SRay ray, float start, float final, inout SIntersection intersec
             intersect.Time = test;
             intersect.Point = ray.Origin + ray.Direction * test;
             intersect.Normal = normalize(cross(triangle.v1 - triangle.v2, triangle.v3 - triangle.v2));
+
+            // Для стекла нормаль должна быть обращена в правильную сторону
+            if (dot(ray.Direction, intersect.Normal) > 0.0) {
+                intersect.Normal = -intersect.Normal;
+            }
 
             int matIdx = triangle.MaterialIdx;
             intersect.Color = materials[matIdx].Color;
@@ -408,6 +425,19 @@ float Shadow(SLight currLight, SIntersection intersect)
 }
 
 
+/*** FRESNEL FUNCTION ***/
+float fresnel(vec3 I, vec3 N, float n1, float n2) {
+    float cosI = -dot(I, N);
+    float eta = n1 / n2;
+    float sinT2 = eta * eta * (1.0 - cosI * cosI);
+    if (sinT2 > 1.0) return 1.0; // Total internal reflection
+    float cosT = sqrt(1.0 - sinT2);
+    float Rs = (n1 * cosI - n2 * cosT) / (n1 * cosI + n2 * cosT);
+    float Rp = (n2 * cosI - n1 * cosT) / (n2 * cosI + n1 * cosT);
+    return (Rs * Rs + Rp * Rp) / 2.0;
+}
+
+
 
 void main() {
     initializeDefaultScene();
@@ -438,20 +468,19 @@ void main() {
 
         if (Raytrace(ray, 0.0, BIG, intersect, trRay.isPrimary)) {
             switch(intersect.MaterialType) {
-                case DIFFUSE: {
+                case DIFFUSE_REFLECTION: {
                     float shadowing = Shadow(light, intersect);
                     resultColor += trRay.contribution * Phong(intersect, light, shadowing, uCamera);
                     break;
                 }
-                case REFLECTION: {
+                case MIRROR_REFLECTION: {
                     if(intersect.ReflectionCoef < 1.0) {
                         float diffuseContribution = trRay.contribution * (1.0 - intersect.ReflectionCoef);
                         float shadowing = Shadow(light, intersect);
                         resultColor += diffuseContribution * Phong(intersect, light, shadowing, uCamera);
                     }
                     
-                    // Отраженная компонента
-                    if(trRay.depth < MAX_RAY_DEPTH) {  // Ограничение глубины рекурсии
+                    if(trRay.depth < MAX_RAY_DEPTH) {
                         vec3 reflectDirection = reflect(ray.Direction, intersect.Normal);
                         float reflectionContribution = trRay.contribution * intersect.ReflectionCoef;
                         
@@ -466,8 +495,40 @@ void main() {
                     }
                     break;
                 }
+                case REFRACTION: {
+                    if(trRay.depth < MAX_RAY_DEPTH) {
+                        float n1 = 1.0; // Воздух
+                        float n2 = intersect.RefractionCoef;
+
+                        float fresnelCoef = fresnel(ray.Direction, intersect.Normal, n1, n2);
+                        float reflectionContribution = trRay.contribution * fresnelCoef;
+                        float refractionContribution = trRay.contribution * (1.0 - fresnelCoef);
+
+                        // Отражение
+                        vec3 reflectDirection = reflect(ray.Direction, intersect.Normal);
+                        STracingRay reflectRay;
+                        reflectRay.ray.Origin = intersect.Point + reflectDirection * EPSILON;
+                        reflectRay.ray.Direction = reflectDirection;
+                        reflectRay.contribution = reflectionContribution;
+                        reflectRay.depth = trRay.depth + 1;
+                        reflectRay.isPrimary = false;
+                        pushRay(reflectRay);
+
+                        // Преломление
+                        vec3 refractDirection = refract(ray.Direction, intersect.Normal, n1 / n2);
+                        if (length(refractDirection) > 0.0) { // Проверка на полное внутреннее отражение
+                            STracingRay refractRay;
+                            refractRay.ray.Origin = intersect.Point + refractDirection * EPSILON;
+                            refractRay.ray.Direction = refractDirection;
+                            refractRay.contribution = refractionContribution;
+                            refractRay.depth = trRay.depth + 1;
+                            refractRay.isPrimary = false;
+                            pushRay(refractRay);
+                        }
+                    }
+                    break;
+                }
                 default: {
-                    // На случай других типов материалов
                     resultColor = vec3(0.7, 0.7, 0.7);
                 }
             }
