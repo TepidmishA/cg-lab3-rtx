@@ -4,12 +4,9 @@
 #define MAX_STACK_SIZE 32
 #define MAX_RAY_DEPTH 16
 
-// const int DIFFUSE = 1;
-// const int REFLECTION = 2;
-const int REFRACTION = 3;
-
 const int DIFFUSE_REFLECTION = 1;
 const int MIRROR_REFLECTION = 2;
+const int REFRACTION = 3;
 
 out vec4 FragColor;
 in vec3 glPosition;
@@ -61,10 +58,8 @@ struct SLight
 };
 struct SMaterial
 {
-    //diffuse color
-    vec3 Color;
-    // ambient, diffuse and specular coeffs
-    vec4 LightCoeffs;
+    vec3 Color; //diffuse color
+    vec4 LightCoeffs;       // ambient, diffuse and specular coeffs
     // 0 - non-reflection, 1 - mirror
     float ReflectionCoef;
     float RefractionCoef;
@@ -88,13 +83,14 @@ struct STetrahedron {
     int MaterialIdx;
 };
 
+
 /*** STACK IMPLEMENTATION ***/
 STracingRay rayStack[MAX_STACK_SIZE];
-int stackTop = -1; // Индекс вершины стека
+int stackTop = -1;
 
 bool pushRay(STracingRay newRay) {
     if (stackTop >= MAX_STACK_SIZE - 1) {
-        return false; // Стек переполнен
+        return false;
     }
     stackTop++;
     rayStack[stackTop] = newRay;
@@ -125,10 +121,13 @@ SCamera initializeDefaultCamera() {
 }
 
 const int TOTAL_TRIANGLES = 12;
+const int TOTAL_SPHERES = 2;
+const int TOTAL_CUBES = 2;
+const int TOTAL_TETRAHEDRONS = 1;
 STriangle triangles[TOTAL_TRIANGLES];
-SSphere spheres[2];
-SCube cubes[2];
-STetrahedron tetrahedrons[2];
+SSphere spheres[TOTAL_SPHERES];
+SCube cubes[TOTAL_CUBES];
+STetrahedron tetrahedrons[TOTAL_TETRAHEDRONS];
 
 void initializeDefaultScene()
 {
@@ -219,13 +218,31 @@ void initializeDefaultScene()
 }
 
 SLight light;
-SMaterial materials[7];
+const int TOTAL_MATERIALS = 7;
+SMaterial materials[TOTAL_MATERIALS];
 // [0] - Green
 // [1] - Blue
 // [2] - Red
 // [3] - White
 // [4] - Mirror
 // [5] - Glass
+// [6] - Glass for cude
+
+uniform vec3 uMaterialColor[TOTAL_MATERIALS];
+uniform vec4 uMaterialLightCoeffs[TOTAL_MATERIALS];
+uniform float uMaterialReflection[TOTAL_MATERIALS];
+uniform float uMaterialRefraction[TOTAL_MATERIALS];
+uniform int uMaterialType[TOTAL_MATERIALS];
+
+SMaterial GetMaterial(int index) {
+    SMaterial m;
+    m.Color = uMaterialColor[index];
+    m.LightCoeffs = uMaterialLightCoeffs[index];
+    m.ReflectionCoef = uMaterialReflection[index];
+    m.RefractionCoef = uMaterialRefraction[index];
+    m.MaterialType = uMaterialType[index];
+    return m;
+}
 
 void initializeDefaultLightMaterials()
 {
@@ -364,7 +381,6 @@ bool IntersectTriangle(SRay ray, vec3 v1, vec3 v2, vec3 v3, out float time)
     return true;
 }
 
-
 float cubeIntersection(vec3 ro, vec3 rd, vec3 cubePos, float cubeSize) {
     vec3 cubeMin = cubePos - cubeSize;
     vec3 cubeMax = cubePos + cubeSize;
@@ -417,13 +433,11 @@ float tetrahedronIntersection(SRay ray, vec3 center, float size, out int faceInd
     return (faceIndex != -1) ? minT : -1.0;
 }
 vec3 tetrahedronNormal(int faceIndex, vec3 center, float size) {
-    // Пересчитываем вершины с учетом центра и размера
     vec3 v0 = center + size * vec3( 1.0, -1.0, -1.0);
     vec3 v1 = center + size * vec3(-1.0, -1.0,  1.0);
     vec3 v2 = center + size * vec3(-1.0,  1.0, -1.0);
     vec3 v3 = center + size * vec3( 1.0,  1.0,  1.0);
 
-    // Нормали для каждой грани (рассчитываются динамически)
     vec3 normals[4];
     
     // Грань 0: v0-v1-v2
@@ -448,7 +462,7 @@ bool Raytrace( SRay ray, float start, float final, inout SIntersection intersect
     intersect.Time = final;
 
     // calculate intersect with spheres
-    for(int i = 0; i < 2; i++)
+    for(int i = 0; i < TOTAL_SPHERES; i++)
     {
         SSphere sphere = spheres[i];
         if ( IntersectSphere (sphere, ray, start, final, test ) && test < intersect.Time )
@@ -461,11 +475,12 @@ bool Raytrace( SRay ray, float start, float final, inout SIntersection intersect
                 intersect.Normal = -intersect.Normal;
             }
             int matIdx = sphere.MaterialIdx;
-            intersect.Color = materials[matIdx].Color;
-            intersect.LightCoeffs = materials[matIdx].LightCoeffs;
-            intersect.ReflectionCoef = materials[matIdx].ReflectionCoef;
-            intersect.RefractionCoef = materials[matIdx].RefractionCoef;
-            intersect.MaterialType = materials[matIdx].MaterialType;
+
+            intersect.Color = GetMaterial(matIdx).Color;
+            intersect.LightCoeffs = GetMaterial(matIdx).LightCoeffs;
+            intersect.ReflectionCoef = GetMaterial(matIdx).ReflectionCoef;
+            intersect.RefractionCoef = GetMaterial(matIdx).RefractionCoef;
+            intersect.MaterialType = GetMaterial(matIdx).MaterialType;
 
             result = true;
         }
@@ -490,18 +505,19 @@ bool Raytrace( SRay ray, float start, float final, inout SIntersection intersect
             }
 
             int matIdx = triangle.MaterialIdx;
-            intersect.Color = materials[matIdx].Color;
-            intersect.LightCoeffs = materials[matIdx].LightCoeffs;
-            intersect.ReflectionCoef = materials[matIdx].ReflectionCoef;
-            intersect.RefractionCoef = materials[matIdx].RefractionCoef;
-            intersect.MaterialType = materials[matIdx].MaterialType;
+
+            intersect.Color = GetMaterial(matIdx).Color;
+            intersect.LightCoeffs = GetMaterial(matIdx).LightCoeffs;
+            intersect.ReflectionCoef = GetMaterial(matIdx).ReflectionCoef;
+            intersect.RefractionCoef = GetMaterial(matIdx).RefractionCoef;
+            intersect.MaterialType = GetMaterial(matIdx).MaterialType;
 
             result = true;
         }
     }
 
     // calculate intersect with cubes
-    for(int i = 0; i < 2; i++) {
+    for(int i = 0; i < TOTAL_CUBES; i++) {
         float test = cubeIntersection(ray.Origin, ray.Direction, 
                     cubes[i].Center, cubes[i].Size);
         if (test > start && test < intersect.Time) 
@@ -511,18 +527,19 @@ bool Raytrace( SRay ray, float start, float final, inout SIntersection intersect
             intersect.Normal = cubeNormal(intersect.Point, cubes[i].Center, ray.Direction);
             
             int matIdx = cubes[i].MaterialIdx;
-            intersect.Color = materials[matIdx].Color;
-            intersect.LightCoeffs = materials[matIdx].LightCoeffs;
-            intersect.ReflectionCoef = materials[matIdx].ReflectionCoef;
-            intersect.RefractionCoef = materials[matIdx].RefractionCoef;
-            intersect.MaterialType = materials[matIdx].MaterialType;
+
+            intersect.Color = GetMaterial(matIdx).Color;
+            intersect.LightCoeffs = GetMaterial(matIdx).LightCoeffs;
+            intersect.ReflectionCoef = GetMaterial(matIdx).ReflectionCoef;
+            intersect.RefractionCoef = GetMaterial(matIdx).RefractionCoef;
+            intersect.MaterialType = GetMaterial(matIdx).MaterialType;
 
             result = true;
         }
     }
 
     // calculate intersect with tetrahedrons
-    for(int i = 0; i < 1; i++) {
+    for(int i = 0; i < TOTAL_TETRAHEDRONS; i++) {
         int faceIndex;
         float test = tetrahedronIntersection(ray, tetrahedrons[i].Center, 
                     tetrahedrons[i].Size, faceIndex);
@@ -538,11 +555,12 @@ bool Raytrace( SRay ray, float start, float final, inout SIntersection intersect
             }
             
             int matIdx = tetrahedrons[i].MaterialIdx;
-            intersect.Color = materials[matIdx].Color;
-            intersect.LightCoeffs = materials[matIdx].LightCoeffs;
-            intersect.ReflectionCoef = materials[matIdx].ReflectionCoef;
-            intersect.RefractionCoef = materials[matIdx].RefractionCoef;
-            intersect.MaterialType = materials[matIdx].MaterialType;
+
+            intersect.Color = GetMaterial(matIdx).Color;
+            intersect.LightCoeffs = GetMaterial(matIdx).LightCoeffs;
+            intersect.ReflectionCoef = GetMaterial(matIdx).ReflectionCoef;
+            intersect.RefractionCoef = GetMaterial(matIdx).RefractionCoef;
+            intersect.MaterialType = GetMaterial(matIdx).MaterialType;
 
             result = true;
         }
@@ -595,7 +613,6 @@ float fresnel(vec3 I, vec3 N, float n1, float n2) {
     float Rp = (n2 * cosI - n1 * cosT) / (n2 * cosI + n1 * cosT);
     return (Rs * Rs + Rp * Rp) / 2.0;
 }
-
 
 
 void main() {
@@ -659,12 +676,10 @@ void main() {
                         float n1 = 1.0; // Воздух
                         float n2 = intersect.RefractionCoef;
                         
-                        // Определяем направление нормали для преломления
                         bool isEntering = dot(ray.Direction, intersect.Normal) < 0.0;
                         vec3 normal = isEntering ? intersect.Normal : -intersect.Normal;
                         float eta = isEntering ? (n1 / n2) : (n2 / n1);
 
-                        // Френель
                         float fresnelCoef = fresnel(ray.Direction, normal, n1, n2);
                         
                         // Отражение
@@ -677,7 +692,7 @@ void main() {
                         );
                         pushRay(reflectRay);
 
-                        // Преломление (только если не полное внутреннее отражение)
+                        // Преломление
                         vec3 refractDir = refract(ray.Direction, normal, eta);
                         if(length(refractDir) > 0.0) {
                             STracingRay refractRay = STracingRay(

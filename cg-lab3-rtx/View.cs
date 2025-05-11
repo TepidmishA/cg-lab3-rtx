@@ -17,6 +17,13 @@ public class View
 
     private int uniform_pos;
     private int uniform_aspect;
+    private int[] uniform_materialColors;
+    private int[] uniform_materialLightCoeffs;
+    private int[] uniform_materialReflection;
+    private int[] uniform_materialRefraction;
+    private int[] uniform_materialType;
+
+    private const int TOTAL_MATERIALS = 7;
 
     public void setAspect(double aspect)
     {
@@ -80,8 +87,77 @@ public class View
         uniform_pos = GL.GetUniformLocation(BasicProgramID, "campos");
         uniform_aspect = GL.GetUniformLocation(BasicProgramID, "aspect");
 
+        uniform_materialColors = new int[TOTAL_MATERIALS];
+        uniform_materialLightCoeffs = new int[TOTAL_MATERIALS];
+        uniform_materialReflection = new int[TOTAL_MATERIALS];
+        uniform_materialRefraction = new int[TOTAL_MATERIALS];
+        uniform_materialType = new int[TOTAL_MATERIALS];
+
+        for (int i = 0; i < TOTAL_MATERIALS; i++)
+        {
+            uniform_materialColors[i] = GL.GetUniformLocation(BasicProgramID, $"uMaterialColor[{i}]");
+            uniform_materialLightCoeffs[i] = GL.GetUniformLocation(BasicProgramID, $"uMaterialLightCoeffs[{i}]");
+            uniform_materialReflection[i] = GL.GetUniformLocation(BasicProgramID, $"uMaterialReflection[{i}]");
+            uniform_materialRefraction[i] = GL.GetUniformLocation(BasicProgramID, $"uMaterialRefraction[{i}]");
+            uniform_materialType[i] = GL.GetUniformLocation(BasicProgramID, $"uMaterialType[{i}]");
+        }
+
+        SetupMaterials();
         SetupBuffers();
     }
+
+    private void SetupMaterials()
+    {
+        GL.UseProgram(BasicProgramID);
+
+        // Начальные значения материалов на основе initializeDefaultLightMaterials
+        Vector3[] colors = new Vector3[]
+        {
+            new Vector3(0.0f, 1.0f, 0.0f), // Green
+            new Vector3(0.0f, 0.0f, 1.0f), // Blue
+            new Vector3(1.0f, 0.0f, 0.0f), // Red
+            new Vector3(1.0f, 1.0f, 1.0f), // White
+            new Vector3(0.9f, 0.9f, 1.0f), // Mirror
+            new Vector3(0.9f, 0.9f, 1.0f), // Glass
+            new Vector3(0.9f, 0.9f, 1.0f)  // Glass for cube
+        };
+
+        Vector4[] lightCoeffs = new Vector4[]
+        {
+            new Vector4(0.4f, 0.9f, 0.0f, 512.0f),
+            new Vector4(0.4f, 0.9f, 0.0f, 512.0f),
+            new Vector4(0.4f, 0.9f, 0.0f, 512.0f),
+            new Vector4(0.55f, 0.9f, 0.0f, 512.0f),
+            new Vector4(0.4f, 0.9f, 0.0f, 512.0f),
+            new Vector4(0.4f, 0.9f, 0.0f, 512.0f),
+            new Vector4(0.4f, 0.9f, 0.8f, 256.0f)
+        };
+
+        float[] reflections = new float[]
+        {
+            0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.1f, 0.1f
+        };
+
+        float[] refractions = new float[]
+        {
+            1.0f, 1.0f, 1.0f, 1.0f, 1.5f, 2.5f, 1.3f
+        };
+
+        int[] types = new int[]
+        {
+            1, 1, 1, 1, 2, 3, 3 // DIFFUSE_REFLECTION, MIRROR_REFLECTION, REFRACTION
+        };
+
+        for (int i = 0; i < TOTAL_MATERIALS; i++)
+        {
+            GL.Uniform3(uniform_materialColors[i], colors[i]);
+            GL.Uniform4(uniform_materialLightCoeffs[i], lightCoeffs[i]);
+            GL.Uniform1(uniform_materialReflection[i], reflections[i]);
+            GL.Uniform1(uniform_materialRefraction[i], refractions[i]);
+            GL.Uniform1(uniform_materialType[i], types[i]);
+        }
+    }
+
 
     public void Render(GLControl glControl)
     {
@@ -100,6 +176,36 @@ public class View
         GL.DisableVertexAttribArray(attribute_vpos);
 
         glControl.SwapBuffers();
+    }
+
+    public void UpdateMaterialColor(int index, Vector3 color)
+    {
+        GL.UseProgram(BasicProgramID);
+        GL.Uniform3(uniform_materialColors[index], color);
+    }
+
+    public void UpdateMaterialLightCoeffs(int index, Vector4 lightCoeffs)
+    {
+        GL.UseProgram(BasicProgramID);
+        GL.Uniform4(uniform_materialLightCoeffs[index], lightCoeffs);
+    }
+
+    public void UpdateMaterialReflection(int index, float reflection)
+    {
+        GL.UseProgram(BasicProgramID);
+        GL.Uniform1(uniform_materialReflection[index], reflection);
+    }
+
+    public void UpdateMaterialRefraction(int index, float refraction)
+    {
+        GL.UseProgram(BasicProgramID);
+        GL.Uniform1(uniform_materialRefraction[index], refraction);
+    }
+
+    public void UpdateMaterialType(int index, int type)
+    {
+        GL.UseProgram(BasicProgramID);
+        GL.Uniform1(uniform_materialType[index], type);
     }
 }
 

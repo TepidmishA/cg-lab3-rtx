@@ -16,6 +16,8 @@ namespace cg_lab3_rtx
     {
         private GLControl glControl;
         private View view;
+        private MaterialEditorForm materialSettingsForm;
+
         public Form1()
         {
             InitializeComponent();
@@ -32,8 +34,17 @@ namespace cg_lab3_rtx
             glControl.Resize += GlControl_Resize;
             this.Controls.Add(glControl);
 
+            var settingsButton = new Button
+            {
+                Text = "Material Settings",
+                Dock = DockStyle.Top
+            };
+            settingsButton.Click += (s, e) => ShowMaterialSettings();
+            this.Controls.Add(settingsButton);
+
             view = new View();
         }
+
         private void GlControl_Load(object sender, EventArgs e)
         {
             view.InitShaders();
@@ -49,12 +60,23 @@ namespace cg_lab3_rtx
         {
             if (glControl.ClientSize.Height == 0)
             {
-                glControl.ClientSize = new System.Drawing.Size(glControl.ClientSize.Width, 1);
+                glControl.ClientSize = new Size(glControl.ClientSize.Width, 1);
             }
-                
+
             GL.Viewport(0, 0, glControl.ClientSize.Width, glControl.ClientSize.Height);
             view.setAspect((float)glControl.Width / glControl.Height);
             glControl.Invalidate();
+        }
+
+        private void ReRender()
+        {
+            view.Render(glControl);
+        }
+
+        private void ShowMaterialSettings()
+        {
+            materialSettingsForm = new MaterialEditorForm(view);
+            materialSettingsForm.Show();
         }
     }
 }
