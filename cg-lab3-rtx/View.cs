@@ -33,7 +33,7 @@ public class View
     private float[] materialRefractions;
     private int[] materialTypes;
 
-    private const int TOTAL_MATERIALS = 7;
+    private const int TOTAL_MATERIALS = 7 + 7;
 
     public void setAspect(double aspect)
     {
@@ -132,13 +132,22 @@ public class View
 
         Vector3[] colors = new Vector3[]
         {
-            new Vector3(0.0f, 1.0f, 0.0f), // Green
-            new Vector3(0.0f, 0.0f, 1.0f), // Blue
-            new Vector3(1.0f, 0.0f, 0.0f), // Red
-            new Vector3(1.0f, 1.0f, 1.0f), // White
-            new Vector3(0.9f, 0.9f, 1.0f), // Mirror
-            new Vector3(0.9f, 0.9f, 1.0f), // Glass
-            new Vector3(0.9f, 0.9f, 1.0f)  // Glass for cube
+            new Vector3(0.0f, 1.0f, 0.0f),  // Green
+            new Vector3(0.0f, 0.0f, 1.0f),  // Blue
+            new Vector3(1.0f, 0.0f, 0.0f),  // Red
+            new Vector3(1.0f, 1.0f, 1.0f),  // White
+            new Vector3(0.9f, 0.9f, 1.0f),  // Mirror
+            new Vector3(0.9f, 0.9f, 1.0f),  // Glass
+            new Vector3(0.9f, 0.9f, 1.0f),  // Glass for cube
+
+            // extra
+            new Vector3(237/255f, 28/255f, 36/255f),    // red
+            new Vector3(255/255f, 127/255f, 39/255f),   // orange
+            new Vector3(255/255f, 242/255f, 0/255f),    // yellow
+            new Vector3(34/255f, 177/255f, 76/255f),    // green
+            new Vector3(0/255f, 162/255f, 232/255f),    // blue
+            new Vector3(63/255f, 72/255f, 204/255f),    // dark blue
+            new Vector3(163/255f, 73/255f, 164/255f)    // purple
         };
 
         Vector4[] lightCoeffs = new Vector4[]
@@ -149,22 +158,34 @@ public class View
             new Vector4(0.55f, 0.9f, 0.0f, 512.0f),
             new Vector4(0.4f, 0.9f, 0.0f, 512.0f),
             new Vector4(0.4f, 0.9f, 0.0f, 512.0f),
-            new Vector4(0.4f, 0.9f, 0.8f, 256.0f)
+            new Vector4(0.4f, 0.9f, 0.8f, 256.0f),
+
+            // extra
+            new Vector4(0.4f, 0.9f, 0.0f, 512.0f),
+            new Vector4(0.4f, 0.9f, 0.0f, 512.0f),
+            new Vector4(0.4f, 0.9f, 0.0f, 512.0f),
+            new Vector4(0.4f, 0.9f, 0.0f, 512.0f),
+            new Vector4(0.4f, 0.9f, 0.0f, 512.0f),
+            new Vector4(0.4f, 0.9f, 0.0f, 512.0f),
+            new Vector4(0.4f, 0.9f, 0.0f, 512.0f),
         };
 
         float[] reflections = new float[]
         {
-            0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.1f, 0.1f
+            0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.1f, 0.1f,
+            0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f    // extra
         };
 
         float[] refractions = new float[]
         {
-            1.0f, 1.0f, 1.0f, 1.0f, 1.5f, 2.5f, 1.3f
+            1.0f, 1.0f, 1.0f, 1.0f, 1.5f, 2.5f, 1.3f,
+            1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f    // extra
         };
 
         int[] types = new int[]
         {
-            1, 1, 1, 1, 2, 3, 3 // DIFFUSE_REFLECTION, MIRROR_REFLECTION, REFRACTION
+            1, 1, 1, 1, 2, 3, 3,    // DIFFUSE_REFLECTION, MIRROR_REFLECTION, REFRACTION
+            1, 1, 1, 1, 1, 1, 1     // extra
         };
 
         for (int i = 0; i < TOTAL_MATERIALS; i++)

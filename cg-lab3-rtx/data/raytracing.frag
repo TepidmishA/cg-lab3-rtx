@@ -120,7 +120,7 @@ SCamera initializeDefaultCamera() {
 }
 
 const int TOTAL_TRIANGLES = 12;
-const int TOTAL_SPHERES = 2;
+const int TOTAL_SPHERES = 9;
 const int TOTAL_CUBES = 2;
 const int TOTAL_TETRAHEDRONS = 1;
 STriangle triangles[TOTAL_TRIANGLES];
@@ -201,6 +201,13 @@ void initializeDefaultScene()
     spheres[1].Radius = 1.0;
     spheres[1].MaterialIdx = 4;
 
+    // EXTRA
+    for (int i = 0; i < 7; i++) {
+        spheres[2 + i].Center = vec3(-2.5 + 0.8 * i, 3, -4.0);
+        spheres[2 + i].Radius = 0.4;
+        spheres[2 + i].MaterialIdx = 7 + i;
+    }
+
     /** CUBES **/
     cubes[0].Center = vec3(3.0, -3.0, 0.0);
     cubes[0].Size = 0.7;
@@ -219,8 +226,13 @@ void initializeDefaultScene()
 uniform int maxRayDepth;
 
 SLight light;
-const int TOTAL_MATERIALS = 7;
-SMaterial materials[TOTAL_MATERIALS];
+const int TOTAL_MATERIALS = 7 + 7;
+uniform vec3 uMaterialColor[TOTAL_MATERIALS];
+uniform vec4 uMaterialLightCoeffs[TOTAL_MATERIALS];
+uniform float uMaterialReflection[TOTAL_MATERIALS];
+uniform float uMaterialRefraction[TOTAL_MATERIALS];
+uniform int uMaterialType[TOTAL_MATERIALS];
+
 // [0] - Green
 // [1] - Blue
 // [2] - Red
@@ -228,12 +240,7 @@ SMaterial materials[TOTAL_MATERIALS];
 // [4] - Mirror
 // [5] - Glass
 // [6] - Glass for cude
-
-uniform vec3 uMaterialColor[TOTAL_MATERIALS];
-uniform vec4 uMaterialLightCoeffs[TOTAL_MATERIALS];
-uniform float uMaterialReflection[TOTAL_MATERIALS];
-uniform float uMaterialRefraction[TOTAL_MATERIALS];
-uniform int uMaterialType[TOTAL_MATERIALS];
+// [7-13] - EXTRA
 
 SMaterial GetMaterial(int index) {
     SMaterial m;
@@ -245,66 +252,12 @@ SMaterial GetMaterial(int index) {
     return m;
 }
 
-void initializeDefaultLightMaterials()
+void initializeDefaultLight()
 {
     //** LIGHT **//
     // light.Position = vec3(0.0, 2.0, -4.0f);
     // light.Position = vec3(2.5, -0.5, -4.0f);
     light.Position = vec3(4.0f, 2.0f, -4.0f);
-    
-
-    /** MATERIALS **/
-    vec4 lightCoefs = vec4(0.4, 0.9, 0.0, 512.0);
-
-    // Green
-    materials[0].Color = vec3(0.0, 1.0, 0.0);
-    materials[0].LightCoeffs = vec4(lightCoefs);
-    materials[0].ReflectionCoef = 0.5;
-    materials[0].RefractionCoef = 1.0;
-    materials[0].MaterialType = DIFFUSE_REFLECTION;
-
-    // Blue
-    materials[1].Color = vec3(0.0, 0.0, 1.0);
-    materials[1].LightCoeffs = vec4(lightCoefs);
-    materials[1].ReflectionCoef = 0.5;
-    materials[1].RefractionCoef = 1.0;
-    materials[1].MaterialType = DIFFUSE_REFLECTION;
-
-    // Red
-    materials[2].Color = vec3(1.0, 0.0, 0.0);
-    materials[2].LightCoeffs = vec4(lightCoefs);
-    materials[2].ReflectionCoef = 0.5;
-    materials[2].RefractionCoef = 1.0;
-    materials[2].MaterialType = DIFFUSE_REFLECTION;
-
-    // White
-    materials[3].Color = vec3(1.0, 1.0, 1.0);
-    materials[3].LightCoeffs = vec4(0.55f, 0.9, 0.0, 512.0);
-    materials[3].ReflectionCoef = 0.5;
-    materials[3].RefractionCoef = 1.0;
-    materials[3].MaterialType = DIFFUSE_REFLECTION;
-
-    // Mirror
-    materials[4].Color = vec3(0.9, 0.9, 1.0);
-    materials[4].LightCoeffs = vec4(lightCoefs);
-    materials[4].ReflectionCoef = 0.5;
-    materials[4].RefractionCoef = 1.5;
-    materials[4].MaterialType = MIRROR_REFLECTION;
-
-    // Glass
-    materials[5].Color = vec3(0.9, 0.9, 1.0);
-    materials[5].LightCoeffs = vec4(lightCoefs);
-    materials[5].ReflectionCoef = 0.1;
-    materials[5].RefractionCoef = 2.5;
-    materials[5].MaterialType = REFRACTION;
-
-    
-    // Glass for cude
-    materials[6].Color = vec3(0.9, 0.9, 1.0);
-    materials[6].LightCoeffs = vec4(0.4, 0.9, 0.8, 256.0);
-    materials[6].ReflectionCoef = 0.1;
-    materials[6].RefractionCoef = 1.3;
-    materials[6].MaterialType = REFRACTION;
 }
 
 
@@ -618,7 +571,7 @@ float fresnel(vec3 I, vec3 N, float n1, float n2) {
 
 void main() {
     initializeDefaultScene();
-    initializeDefaultLightMaterials();
+    initializeDefaultLight();
 
     SCamera uCamera = initializeDefaultCamera();
     SRay primaryRay = GenerateRay(uCamera);
